@@ -1,0 +1,158 @@
+Act as a Senior Full Stack QA Engineer + Security Auditor + SaaS Architect.
+
+Project: ClearOrbit
+
+I want a COMPLETE A to Z audit of my entire web app and extension.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Check EVERYTHING in the system.
+
+DO NOT skip anything.
+DO NOT assume anything.
+Find ALL bugs, missing features, security issues, and broken flows.
+
+--------------------------------------
+🔍 1. AUTHENTICATION SYSTEM
+--------------------------------------
+
+✔ Login working?
+✔ Logout working?
+✔ Session handling correct?
+✔ Multi-device control working?
+✔ Session expiry working?
+
+--------------------------------------
+👤 2. USER SYSTEM
+--------------------------------------
+
+✔ Admin can create user (username + email + password)
+✔ User profile completion required
+✔ Profile update sync with admin panel
+✔ Email required & unique
+✔ Phone format correct (country code)
+
+--------------------------------------
+🛡️ 3. ROLE SYSTEM
+--------------------------------------
+
+✔ Admin full access
+✔ Manager ONLY user add/delete
+✔ Manager cannot access dashboard or other pages
+✔ Direct URL access blocked
+
+--------------------------------------
+📊 4. DASHBOARD / OVERVIEW
+--------------------------------------
+
+✔ All stats are real (DB-driven)
+✔ No fake data
+✔ Platform load correct
+✔ Slot usage correct
+✔ Active users correct
+✔ Empty states handled
+
+--------------------------------------
+📦 5. SUBSCRIPTION SYSTEM
+--------------------------------------
+
+✔ Expiry date admin-only
+✔ User cannot edit expiry
+✔ Expired users blocked
+✔ Expiring soon logic correct
+
+--------------------------------------
+🔌 6. EXTENSION SYSTEM
+--------------------------------------
+
+✔ Extension connects properly
+✔ Cookie injection works
+✔ Session injection works
+✔ Multi-device handled
+
+--------------------------------------
+🚪 7. LOGOUT SECURITY (CRITICAL)
+--------------------------------------
+
+✔ Logout clears all cookies
+✔ All platforms auto logout
+✔ No session remains active
+
+--------------------------------------
+📡 8. API CHECK
+--------------------------------------
+
+✔ All endpoints working
+✔ No broken routes
+✔ Proper error handling
+✔ No unauthorized access
+
+--------------------------------------
+🗄️ 9. DATABASE CHECK
+--------------------------------------
+
+✔ No duplicate data
+✔ Correct relations
+✔ No unused tables
+✔ Indexing correct
+
+--------------------------------------
+📱 10. RESPONSIVE DESIGN
+--------------------------------------
+
+✔ Mobile working
+✔ Tablet working
+✔ No UI break
+
+--------------------------------------
+⚡ 11. PERFORMANCE
+--------------------------------------
+
+✔ No slow queries
+✔ No unnecessary reloads
+✔ Optimized assets
+
+--------------------------------------
+🔐 12. SECURITY CHECK (IMPORTANT)
+--------------------------------------
+
+✔ SQL injection protection
+✔ XSS protection
+✔ No exposed credentials
+✔ Proper validation
+
+--------------------------------------
+🎨 13. UI/UX CHECK
+--------------------------------------
+
+✔ Layout clean
+✔ No alignment issues
+✔ Buttons working
+✔ Loading states present
+
+--------------------------------------
+📂 14. FILE STRUCTURE
+--------------------------------------
+
+✔ Clean project
+✔ No unused files
+✔ No junk files
+
+--------------------------------------
+🚨 FINAL OUTPUT
+--------------------------------------
+
+Provide:
+
+1. List of ALL issues found
+2. Severity level (Critical / Medium / Low)
+3. Exact fix for each issue
+4. Missing features (if any)
+
+--------------------------------------
+
+DO NOT SAY "everything is fine".
+
+Find REAL problems and FIX THEM.
