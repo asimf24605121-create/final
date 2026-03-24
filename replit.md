@@ -50,3 +50,10 @@ Key architectural and feature specifications include:
 -   **Profile Tab System**: Hash-based tab switching (`profile.html#view`, `#edit`, `#password`) with `history.replaceState` and `hashchange` listener
 -   **Admin Overview**: KPI card tooltips, "Last updated Xs ago" indicator in status bar, platform load zero-slot handling, slot intelligence "No activity yet" fallback
 -   **Dashboard Profile Dropdown**: Avatar circle with `toggleProfileDropdown()`, click-outside close, links to profile/password/signout
+
+## Development & Deployment
+-   **Development**: Runs via `php -S 0.0.0.0:5000 router.php` using PHP's built-in server with SQLite
+-   **Deployment**: Configured for Replit autoscale with `php -S 0.0.0.0:5000 router.php`
+-   **Router** (`router.php`): Serves all static assets (CSS, JS, fonts, images, SVG, etc.) with correct MIME types, delegates PHP files to the built-in server handler, and displays a branded 404 page for non-existent routes
+-   **Database**: SQLite auto-initializes on first run in development; MySQL requires `config.php` credentials for production on Hostinger
+-   **Environment Detection**: `REPLIT_DEV_DOMAIN` is used to detect Replit environment (skips `config.php`, enables SameSite=None cookies for iframe proxy)
