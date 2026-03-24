@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_9Dnxmzw6HWXJGvRXnIFL"
+uri = "file://clearorbit-hostinger.zip"
+type = "unspecified"
+title = "ClearOrbit — Hostinger Deployment Package"
