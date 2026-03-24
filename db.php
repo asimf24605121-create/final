@@ -16,9 +16,12 @@ if (session_status() === PHP_SESSION_NONE) {
             'samesite'  => 'None',
         ]);
     } else {
+        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                   || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',
+            'secure'   => $isHttps,
             'httponly'  => true,
             'samesite'  => 'Lax',
         ]);
@@ -55,6 +58,10 @@ header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, X-CSRF-Token');
 header('Content-Type: application/json; charset=utf-8');
 header('Vary: Origin');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     ob_end_clean();
@@ -98,7 +105,8 @@ function getPDO(): PDO {
     } catch (PDOException $e) {
         ob_end_clean();
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+        error_log('Database connection failed: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database connection failed. Please try again later.']);
         exit;
     }
 
@@ -168,9 +176,15 @@ function initSQLite(PDO $pdo): void {
         browser         TEXT    NOT NULL DEFAULT 'Unknown',
         os              TEXT    NOT NULL DEFAULT 'Unknown',
         status          TEXT    NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive')),
+        logout_reason   TEXT    NULL DEFAULT NULL,
         last_activity   TEXT    NOT NULL DEFAULT (datetime('now')),
         created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
     )");
+
+    $sessCols = $pdo->query("PRAGMA table_info(user_sessions)")->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('logout_reason', $sessCols, true)) {
+        $pdo->exec("ALTER TABLE user_sessions ADD COLUMN logout_reason TEXT NULL DEFAULT NULL");
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS login_history (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -403,12 +417,14 @@ function initSQLite(PDO $pdo): void {
 
     $count = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     if ($count === 0) {
-        $adminHash = password_hash('W@$!@$!m1009388', PASSWORD_BCRYPT);
-        $userHash  = password_hash('password',  PASSWORD_BCRYPT);
+        $defaultAdminPass = getenv('DEFAULT_ADMIN_PASSWORD') ?: 'ClearOrbit_Admin_' . bin2hex(random_bytes(4));
+        $adminHash = password_hash($defaultAdminPass, PASSWORD_BCRYPT);
+        $userHash  = password_hash('ChangeMe123!',  PASSWORD_BCRYPT);
+        error_log("ClearOrbit: Default admin account created. Password: {$defaultAdminPass} — CHANGE THIS IMMEDIATELY.");
 
         $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, is_active, admin_level, name, email, phone) VALUES (?, ?, ?, 1, ?, ?, ?, ?)");
         $stmt->execute(['asimf24605121@gmail.com',    $adminHash, 'admin', 'super_admin', 'Asim (Owner)', 'asimf24605121@gmail.com', '']);
-        $stmt->execute(['john_doe', $userHash,  'user',  null, 'John Doe', 'john@example.com', '+1234567890']);
+        $stmt->execute(['john_doe', $userHash,  'user',  null, 'John Doe', 'john@example.com', '']);
 
         $stmt2 = $pdo->prepare("INSERT INTO platforms (name, logo_url, bg_color_hex, is_active, cookie_domain, login_url) VALUES (?, ?, ?, 1, ?, ?)");
         $stmt2->execute(['Netflix',    'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg', '#e50914', '.netflix.com',    'https://www.netflix.com/']);
@@ -453,7 +469,7 @@ function initSQLite(PDO $pdo): void {
 
         $stmtWa = $pdo->prepare("INSERT OR IGNORE INTO whatsapp_config (platform_id, shared_number, private_number) VALUES (?, ?, ?)");
         for ($pid = 1; $pid <= 9; $pid++) {
-            $stmtWa->execute([$pid, '1234567890', '1234567890']);
+            $stmtWa->execute([$pid, '', '']);
         }
     }
 }
@@ -466,10 +482,20 @@ function jsonResponse(array $data, int $statusCode = 200): void {
 }
 
 function getClientIP(): string {
-    return $_SERVER['HTTP_X_FORWARDED_FOR']
-        ?? $_SERVER['HTTP_X_REAL_IP']
-        ?? $_SERVER['REMOTE_ADDR']
-        ?? '0.0.0.0';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+    $trustedProxies = array_filter(array_map('trim', explode(',', getenv('TRUSTED_PROXIES') ?: '')));
+
+    if (!empty($trustedProxies) && in_array($ip, $trustedProxies, true)) {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $forwarded = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+            $ip = $forwarded[0];
+        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $ip = trim($_SERVER['HTTP_X_REAL_IP']);
+        }
+    }
+
+    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '0.0.0.0';
 }
 
 function generateCsrfToken(): string {

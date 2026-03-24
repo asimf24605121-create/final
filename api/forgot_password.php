@@ -55,7 +55,7 @@ $smtpUser = getenv('SMTP_USER');
 $smtpPass = getenv('SMTP_PASS');
 $smtpConfigured = $smtpHost && $smtpUser && $smtpPass;
 
-$isDev = getenv('REPLIT_DEV_DOMAIN') || getenv('APP_DEBUG');
+$isDev = (bool)(getenv('REPLIT_DEV_DOMAIN')) || (getenv('APP_DEBUG') === 'true' && !getenv('APP_BASE_URL'));
 
 if ($smtpConfigured) {
     try {
@@ -109,10 +109,10 @@ if ($smtpConfigured) {
     logActivity($user['id'], 'password_reset_requested', getClientIP());
 
     if ($isDev) {
+        error_log("ClearOrbit DEV: Password reset URL for {$email}: {$resetUrl}");
         jsonResponse([
             'success' => true,
-            'message' => 'SMTP not configured. In development mode, use the reset link below.',
-            'debug_reset_url' => $resetUrl,
+            'message' => 'SMTP not configured. In development mode, check the server logs for the reset link.',
         ]);
     } else {
         $pdo->prepare("UPDATE password_reset_tokens SET used = 1 WHERE token = ?")->execute([$token]);

@@ -30,11 +30,14 @@ $pdo = getPDO();
 
 $ip = getClientIP();
 $cutoff = date('Y-m-d H:i:s', strtotime('-10 minutes'));
-$recent = $pdo->prepare("SELECT COUNT(*) FROM contact_messages WHERE email = ? AND created_at > ?");
-$recent->execute([$email, $cutoff]);
-if ((int)$recent->fetchColumn() >= 3) {
+
+$recentByEmail = $pdo->prepare("SELECT COUNT(*) FROM contact_messages WHERE email = ? AND created_at > ?");
+$recentByEmail->execute([$email, $cutoff]);
+if ((int)$recentByEmail->fetchColumn() >= 3) {
     jsonResponse(['success' => false, 'message' => 'Too many messages sent. Please try again later.'], 429);
 }
+
+checkRateLimit($ip, 10, 10);
 
 $pdo->prepare("INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)")
     ->execute([$name, $email, $message]);

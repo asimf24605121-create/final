@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonResponse(['success' => false, 'message' => 'Token and new password are required.'], 400);
     }
 
-    if (strlen($password) < 6) {
-        jsonResponse(['success' => false, 'message' => 'Password must be at least 6 characters.'], 400);
+    if (strlen($password) < 8) {
+        jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters.'], 400);
     }
 
     $pdo = getPDO();

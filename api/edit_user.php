@@ -114,8 +114,8 @@ if (isset($input['gender'])) {
 
 if (isset($input['password'])) {
     $password = $input['password'];
-    if (strlen($password) < 6) {
-        jsonResponse(['success' => false, 'message' => 'Password must be at least 6 characters.'], 400);
+    if (strlen($password) < 8) {
+        jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters.'], 400);
     }
     $updates[] = "password_hash = ?";
     $params[] = password_hash($password, PASSWORD_BCRYPT);

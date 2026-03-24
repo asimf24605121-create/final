@@ -2,10 +2,7 @@
 require_once __DIR__ . '/../db.php';
 
 session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    jsonResponse(['success' => false, 'message' => 'Unauthorized.'], 401);
-}
+validateSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Method not allowed.'], 405);
@@ -30,8 +27,8 @@ if ($newPassword !== $confirmPassword) {
     jsonResponse(['success' => false, 'message' => 'New passwords do not match.'], 400);
 }
 
-if (strlen($newPassword) < 6) {
-    jsonResponse(['success' => false, 'message' => 'New password must be at least 6 characters.'], 400);
+if (strlen($newPassword) < 8) {
+    jsonResponse(['success' => false, 'message' => 'New password must be at least 8 characters.'], 400);
 }
 
 if ($currentPassword === $newPassword) {
@@ -52,6 +49,9 @@ if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
 $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
 $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?")->execute([$newHash, $userId]);
 
+$currentToken = $_SESSION['session_token'] ?? null;
+deactivateAllUserSessions($userId, $currentToken, 'Password changed — re-login required');
+
 logActivity($userId, "password_changed", getClientIP());
 
-jsonResponse(['success' => true, 'message' => 'Password changed successfully.']);
+jsonResponse(['success' => true, 'message' => 'Password changed successfully. Other sessions have been logged out.']);

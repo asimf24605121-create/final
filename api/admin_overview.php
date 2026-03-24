@@ -78,7 +78,7 @@ $inactiveUsers7d = (int)$stmtInactiveUsers->fetchColumn();
 
 $totalPlatforms = (int)$pdo->query("SELECT COUNT(*) FROM platforms WHERE is_active = 1")->fetchColumn();
 
-$platformLoad = $pdo->query("
+$stmtPlatformLoad = $pdo->prepare("
     SELECT 
         p.id,
         p.name,
@@ -86,12 +86,14 @@ $platformLoad = $pdo->query("
         (SELECT COUNT(*) FROM platform_accounts pa WHERE pa.platform_id = p.id AND pa.is_active = 1) AS total_slots,
         (SELECT COUNT(DISTINCT acs.account_id) FROM account_sessions acs 
          JOIN platform_accounts pa2 ON pa2.id = acs.account_id 
-         WHERE pa2.platform_id = p.id AND acs.status = 'active' AND acs.last_active >= datetime('now', '-5 minutes')) AS active_slots,
-        (SELECT COUNT(*) FROM user_subscriptions us WHERE us.platform_id = p.id AND us.is_active = 1 AND us.end_date >= date('now')) AS active_subs
+         WHERE pa2.platform_id = p.id AND acs.status = 'active' AND acs.last_active >= ?) AS active_slots,
+        (SELECT COUNT(*) FROM user_subscriptions us WHERE us.platform_id = p.id AND us.is_active = 1 AND us.end_date >= ?) AS active_subs
     FROM platforms p
     WHERE p.is_active = 1
     ORDER BY p.name
-")->fetchAll();
+");
+$stmtPlatformLoad->execute([$fiveMinAgo, $today]);
+$platformLoad = $stmtPlatformLoad->fetchAll();
 
 foreach ($platformLoad as &$pl) {
     $pl['total_slots'] = (int)$pl['total_slots'];

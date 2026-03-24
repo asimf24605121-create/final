@@ -25,8 +25,8 @@ if (strlen($username) < 3 || strlen($username) > 50) {
     jsonResponse(['success' => false, 'message' => 'Username must be 3-50 characters.'], 400);
 }
 
-if (strlen($password) < 6) {
-    jsonResponse(['success' => false, 'message' => 'Password must be at least 6 characters.'], 400);
+if (strlen($password) < 8) {
+    jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters.'], 400);
 }
 
 if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {

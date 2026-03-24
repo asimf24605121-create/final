@@ -2,10 +2,7 @@
 require_once __DIR__ . '/../db.php';
 
 session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    jsonResponse(['success' => false, 'message' => 'Unauthorized.'], 401);
-}
+validateSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Method not allowed.'], 405);

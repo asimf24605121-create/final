@@ -13,9 +13,9 @@ $isBeacon = stripos($contentType, 'text/plain') !== false;
 if (!$isBeacon) {
     validateCsrfToken();
 }
-
 $pdo = getPDO();
 $userId = (int)$_SESSION['user_id'];
+
 $input = json_decode(file_get_contents('php://input'), true);
 
 $accountId = (int)($input['account_id'] ?? 0);
