@@ -223,8 +223,10 @@ CREATE TABLE IF NOT EXISTS `support_tickets` (
     `message`       TEXT            NOT NULL,
     `status`        ENUM('pending','resolved') NOT NULL DEFAULT 'pending',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `resolved_at`   DATETIME        DEFAULT NULL,
     PRIMARY KEY (`id`),
     INDEX `idx_st_status` (`status`),
+    INDEX `idx_st_user_platform` (`user_id`, `platform_name`, `status`),
     CONSTRAINT `fk_st_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -265,14 +267,18 @@ CREATE TABLE IF NOT EXISTS `user_notifications` (
 -- Table: contact_messages
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `contact_messages` (
-    `id`         INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-    `name`       VARCHAR(100)    NOT NULL,
-    `email`      VARCHAR(255)    NOT NULL,
-    `message`    TEXT            NOT NULL,
-    `is_read`    TINYINT(1)      NOT NULL DEFAULT 0,
-    `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `id`              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `name`            VARCHAR(100)    NOT NULL,
+    `email`           VARCHAR(255)    NOT NULL,
+    `whatsapp_number` VARCHAR(20)     DEFAULT NULL,
+    `message`         TEXT            NOT NULL,
+    `is_read`         TINYINT(1)      NOT NULL DEFAULT 0,
+    `status`          ENUM('unread','read','replied') NOT NULL DEFAULT 'unread',
+    `admin_reply`     TEXT            DEFAULT NULL,
+    `created_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    INDEX `idx_cm_read` (`is_read`)
+    INDEX `idx_cm_read` (`is_read`),
+    INDEX `idx_cm_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------

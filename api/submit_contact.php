@@ -8,14 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $input = json_decode(file_get_contents('php://input'), true);
 $name = trim($input['name'] ?? '');
 $email = trim($input['email'] ?? '');
+$whatsapp = trim($input['whatsapp_number'] ?? '');
 $message = trim($input['message'] ?? '');
 
-if ($name === '' || $email === '' || $message === '') {
-    jsonResponse(['success' => false, 'message' => 'All fields are required.'], 400);
+if ($name === '' || $email === '' || $whatsapp === '' || $message === '') {
+    jsonResponse(['success' => false, 'message' => 'All fields are required including WhatsApp number.'], 400);
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     jsonResponse(['success' => false, 'message' => 'Please enter a valid email address.'], 400);
+}
+
+if (!preg_match('/^\+[1-9]\d{6,14}$/', $whatsapp)) {
+    jsonResponse(['success' => false, 'message' => 'Please enter a valid WhatsApp number in international format (e.g. +923001234567).'], 400);
 }
 
 if (strlen($name) > 100) {
@@ -39,7 +44,7 @@ if ((int)$recentByEmail->fetchColumn() >= 3) {
 
 checkRateLimit($ip, 10, 10);
 
-$pdo->prepare("INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)")
-    ->execute([$name, $email, $message]);
+$pdo->prepare("INSERT INTO contact_messages (name, email, whatsapp_number, message) VALUES (?, ?, ?, ?)")
+    ->execute([$name, $email, $whatsapp, $message]);
 
 jsonResponse(['success' => true, 'message' => 'Your message has been sent. We\'ll get back to you soon!']);

@@ -28,6 +28,12 @@ if (strlen($message) > 1000) {
 $pdo = getPDO();
 $userId = (int)$_SESSION['user_id'];
 
+$existing = $pdo->prepare("SELECT COUNT(*) FROM support_tickets WHERE user_id = ? AND platform_name = ? AND status = 'pending'");
+$existing->execute([$userId, $platformName]);
+if ((int)$existing->fetchColumn() > 0) {
+    jsonResponse(['success' => false, 'message' => 'You already have a pending ticket for this platform. Please wait for it to be resolved.'], 409);
+}
+
 $cutoff = date('Y-m-d H:i:s', strtotime('-5 minutes'));
 $recent = $pdo->prepare("SELECT COUNT(*) FROM support_tickets WHERE user_id = ? AND created_at > ?");
 $recent->execute([$userId, $cutoff]);

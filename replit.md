@@ -26,9 +26,9 @@ Key architectural and feature specifications include:
 -   **Platform Management**: Admins can add, activate, and deactivate platforms, which dynamically update user access.
 -   **Activity Logging**: Comprehensive tracking of significant user and admin actions.
 -   **Password Reset**: Token-based system with email delivery via PHPMailer.
--   **Support Tickets**: Users can report issues, and admins can manage tickets.
+-   **Support Tickets**: Full lifecycle ticket system — users report issues per platform, duplicate tickets prevented (one pending per platform per user), admin resolves with `resolved_at` timestamp, user receives in-app notification on resolution, user dashboard shows pending ticket count badge and recent ticket status (Pending/Resolved) in report modal. Rate limit: max 3 tickets per 5 minutes.
 -   **Announcements**: A time-based, multi-type announcement system (Popup/Notification) with scheduling and CRUD functionalities for super admins.
--   **Contact Messages**: A public contact form with admin review capabilities.
+-   **Contact Messages**: Public contact form with WhatsApp number (required, international format validated), admin review with tri-state status (Unread=red, Read=blue, Replied=green badges), WhatsApp reply integration — admin types reply in modal, clicks "Send via WhatsApp" which saves the reply, marks status as replied, and opens `wa.me` link with auto-filled message. Rate limit: max 3 messages per email per 10 minutes.
 -   **Extension-Dashboard Communication**: Secure `window.postMessage` for communication between dashboard and content script, relayed to the service worker via `chrome.runtime.sendMessage`. Server-provided `redirect_url` and `platform_id` are central for routing.
 -   **Global Logout Sync**: Cross-tab logout synchronization via `localStorage` events, ensuring consistent state across all open tabs and clearing injected cookies.
 -   **Persistent Notifications**: A Facebook/LinkedIn-style notification system with a bell icon, unread count, dropdown panel, and "mark all as read" functionality, updated via polling.

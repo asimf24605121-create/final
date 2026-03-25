@@ -1,0 +1,58 @@
+You are a senior full-stack web developer.
+
+I have a SaaS admin dashboard with a "Support Tickets" system. Currently, users can submit issues related to different platforms (e.g., ChatGPT, Spotify, Coursera, etc.), and admins can mark tickets as "Resolved" or keep them "Pending".
+
+However, the system lacks proper user feedback and status synchronization with the user dashboard.
+
+Your task is to improve the Support Ticket system workflow and user experience with the following requirements:
+
+1. USER-SIDE STATUS FLOW:
+- When a user submits a support ticket, the "Report Issue" button or section in the user's dashboard should immediately reflect a "Pending" status.
+- This status must persist and be visible to the user until the issue is resolved.
+- The UI should clearly show that the issue is under review (e.g., badge, label, or status indicator).
+
+2. ADMIN RESOLUTION FLOW:
+- When the admin marks a ticket as "Resolved" from the admin panel:
+  - The status should update in real-time (or on refresh) for the specific user who submitted that ticket.
+  - Only the relevant user should see this update (not all users).
+
+3. USER NOTIFICATION SYSTEM:
+- Once a ticket is marked as "Resolved":
+  - Send a notification to the specific user who created the ticket.
+  - Notification can be:
+    - In-app notification (preferred)
+    - Optional: email notification (if system supports it)
+- Notification message should clearly state:
+  - Issue has been resolved
+  - Platform name
+  - Optional short resolution message
+
+4. DASHBOARD UI UPDATE:
+- In the user dashboard:
+  - Show ticket status:
+    - Pending → yellow/orange badge
+    - Resolved → green badge
+  - Replace or disable the "Report Issue" button while a ticket is pending (to prevent spam)
+  - Once resolved, allow user to report again if needed
+
+5. DATA STRUCTURE REQUIREMENTS:
+- Each ticket must be linked to:
+  - user_id
+  - platform_name
+  - issue_description
+  - status (pending/resolved)
+  - created_at
+  - resolved_at (new field)
+
+6. EDGE CASES:
+- Prevent multiple active (pending) tickets for the same platform per user
+- Ensure that logging out/in does not break ticket status visibility
+- Ensure proper syncing between admin panel and user dashboard
+
+7. PERFORMANCE & CLEAN LOGIC:
+- Do not break existing system
+- Keep it lightweight (since this is a no Node.js hosting environment)
+- Use efficient frontend updates (AJAX / fetch / polling if needed)
+
+Focus on clean UX, accurate state management, and user-specific updates.
+Do NOT overcomplicate. Keep it scalable and production-ready.

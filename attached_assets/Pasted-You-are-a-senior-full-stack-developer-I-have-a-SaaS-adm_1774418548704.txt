@@ -1,0 +1,117 @@
+You are a senior full-stack developer.
+
+I have a SaaS admin dashboard with a "Contact Messages" section where users submit messages via a contact form. I want to upgrade this system with WhatsApp integration and stricter validation.
+
+Your task is to redesign and enhance the Contact Message system with the following requirements:
+
+---
+
+1. CONTACT FORM (USER SIDE)
+
+* The contact form must include the following required fields:
+
+  * Full Name (required)
+  * Email (required)
+  * WhatsApp Number (REQUIRED - must be mandatory)
+  * Message (required)
+
+* Validation Rules:
+
+  * No field should be empty
+  * WhatsApp number must be in valid international format (e.g., +923XXXXXXXXX)
+  * Show user-friendly error messages if invalid
+
+---
+
+2. STORE DATA
+
+Each contact message must store:
+
+* name
+* email
+* whatsapp_number (NEW - required)
+* message
+* status (unread / read / replied)
+* created_at
+
+---
+
+3. ADMIN DASHBOARD (CONTACT MESSAGES PAGE)
+
+* Admin should see all messages in a table (already exists)
+* Add a "Reply" button for each message
+
+When admin clicks "Reply":
+
+* Open a small reply box / modal inside dashboard
+* Admin can type a custom reply message
+
+---
+
+4. WHATSAPP REDIRECT SYSTEM (CORE FEATURE)
+
+When admin clicks "Send" or "OK":
+
+* Instantly redirect admin to WhatsApp chat of that specific user
+
+* Use this format:
+
+  https://wa.me/<whatsapp_number>?text=<encoded_message>
+
+* Auto-fill the message written by admin into WhatsApp chat
+
+* Admin only needs to press "Send" in WhatsApp
+
+Example:
+https://wa.me/923001234567?text=Hello%20your%20issue%20is%20resolved
+
+---
+
+5. STATUS UPDATE
+
+* When admin clicks "OK / Send":
+
+  * Update message status → "Replied"
+  * Save reply message (optional but recommended)
+  * Mark as handled
+
+---
+
+6. UX IMPROVEMENTS
+
+* Show status badges:
+
+  * Unread → red
+  * Read → blue
+  * Replied → green
+
+* When admin opens message → mark as "Read"
+
+* Disable spam:
+
+  * Prevent duplicate submissions in short time
+
+---
+
+7. PERFORMANCE + COMPATIBILITY
+
+* Must work without Node.js (important)
+* Use pure frontend (JS) or simple backend (PHP / Firebase / Supabase if needed)
+* Keep it lightweight and fast
+
+---
+
+8. EDGE CASES
+
+* If WhatsApp number is missing or invalid → block submission
+* If admin clicks reply without message → show error
+* Ensure correct encoding of message (URL encoding)
+
+---
+
+GOAL:
+
+Create a fast, clean, and practical system where admin can:
+1 click → open WhatsApp → send reply instantly
+
+No unnecessary complexity. Focus on real-world usability.

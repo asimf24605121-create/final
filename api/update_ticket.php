@@ -24,7 +24,7 @@ if (!in_array($action, ['resolve', 'delete'], true)) {
 
 $pdo = getPDO();
 
-$stmt = $pdo->prepare("SELECT id, platform_name FROM support_tickets WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, user_id, platform_name FROM support_tickets WHERE id = ?");
 $stmt->execute([$ticketId]);
 $ticket = $stmt->fetch();
 
@@ -33,9 +33,19 @@ if (!$ticket) {
 }
 
 if ($action === 'resolve') {
-    $pdo->prepare("UPDATE support_tickets SET status = 'resolved' WHERE id = ?")->execute([$ticketId]);
+    $now = date('Y-m-d H:i:s');
+    $pdo->prepare("UPDATE support_tickets SET status = 'resolved', resolved_at = ? WHERE id = ?")->execute([$now, $ticketId]);
+
+    $notifStmt = $pdo->prepare("INSERT INTO user_notifications (user_id, title, message, type, created_at) VALUES (?, ?, ?, 'success', ?)");
+    $notifStmt->execute([
+        $ticket['user_id'],
+        'Issue Resolved — ' . $ticket['platform_name'],
+        'Your support ticket for ' . $ticket['platform_name'] . ' has been resolved. If you continue to experience issues, feel free to report again.',
+        $now,
+    ]);
+
     logActivity($_SESSION['user_id'], "ticket_resolved: id={$ticketId} platform={$ticket['platform_name']}", getClientIP());
-    jsonResponse(['success' => true, 'message' => 'Ticket marked as resolved.']);
+    jsonResponse(['success' => true, 'message' => 'Ticket marked as resolved. User has been notified.']);
 } else {
     $pdo->prepare("DELETE FROM support_tickets WHERE id = ?")->execute([$ticketId]);
     logActivity($_SESSION['user_id'], "ticket_deleted: id={$ticketId} platform={$ticket['platform_name']}", getClientIP());

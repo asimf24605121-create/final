@@ -239,9 +239,10 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="openReportModal()" class="btn btn-secondary btn-sm" title="Report Issue">
+                <button onclick="openReportModal()" id="reportIssueBtn" class="btn btn-secondary btn-sm" title="Report Issue" style="position:relative">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     <span class="hidden sm:inline">Report Issue</span>
+                    <span id="ticketPendingBadge" class="hidden" style="position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:999px;background:#F59E0B;color:#fff;font-size:.625rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.15)">0</span>
                 </button>
                 <div class="profile-avatar-wrap" id="profileAvatarWrap" data-testid="btn-profile-avatar">
                     <button onclick="toggleProfileDropdown(event)" class="profile-avatar-btn" data-testid="btn-profile-toggle">
@@ -1541,15 +1542,67 @@ function closeAnnouncement() {
 }
 
 // ========== REPORT ISSUE ==========
+let USER_TICKETS = [];
+let PENDING_PLATFORMS = [];
+
+async function loadUserTickets() {
+    try {
+        const res = await fetch('api/get_user_tickets.php', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.success) {
+            USER_TICKETS = data.tickets || [];
+            PENDING_PLATFORMS = data.pending_platforms || [];
+            const badge = document.getElementById('ticketPendingBadge');
+            if (PENDING_PLATFORMS.length > 0) {
+                badge.textContent = PENDING_PLATFORMS.length;
+                badge.classList.remove('hidden');
+                badge.style.display = 'flex';
+            } else {
+                badge.classList.add('hidden');
+                badge.style.display = 'none';
+            }
+        }
+    } catch (e) {}
+}
+
 function openReportModal() {
     const select = document.getElementById('reportPlatform');
     select.innerHTML = '<option value="">Select platform...</option>';
     (ALL_CARDS || []).forEach(c => {
-        select.innerHTML += `<option value="${escHtml(c.platform_name || c.name || '')}">${escHtml(c.platform_name || c.name || 'Platform')}</option>`;
+        const pName = c.platform_name || c.name || '';
+        const isPending = PENDING_PLATFORMS.includes(pName);
+        select.innerHTML += `<option value="${escHtml(pName)}" ${isPending ? 'disabled' : ''}>${escHtml(pName || 'Platform')}${isPending ? ' (Pending ticket)' : ''}</option>`;
     });
     document.getElementById('reportMessage').value = '';
     document.getElementById('reportCharCount').textContent = '0';
+    updateTicketStatusList();
     document.getElementById('reportModal').classList.add('active');
+}
+
+function updateTicketStatusList() {
+    let el = document.getElementById('reportTicketStatus');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'reportTicketStatus';
+        el.style.cssText = 'margin-bottom:1rem';
+        const container = document.querySelector('#reportModal .p-6.space-y-4');
+        if (container) container.prepend(el);
+    }
+    const recent = USER_TICKETS.filter(t => {
+        const age = Date.now() - new Date(t.created_at + 'Z').getTime();
+        return age < 30 * 24 * 3600 * 1000;
+    });
+    if (recent.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+        <div style="padding:.625rem .875rem;border-radius:.625rem;background:#FFFBEB;border:1px solid #FDE68A">
+            <p style="font-size:.6875rem;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem">Your Recent Tickets</p>
+            ${recent.slice(0,5).map(t => {
+                const badge = t.status === 'pending'
+                    ? '<span style="display:inline-block;padding:1px 6px;border-radius:999px;background:#FEF3C7;color:#D97706;font-size:.625rem;font-weight:600">Pending</span>'
+                    : '<span style="display:inline-block;padding:1px 6px;border-radius:999px;background:#D1FAE5;color:#059669;font-size:.625rem;font-weight:600">Resolved</span>';
+                return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0;font-size:.75rem;color:#4B5563"><span>${escHtml(t.platform_name)}</span>${badge}</div>`;
+            }).join('')}
+        </div>`;
 }
 
 function closeReportModal() {
@@ -1565,6 +1618,10 @@ async function submitReport() {
     const message = document.getElementById('reportMessage').value.trim();
 
     if (!platform) { showToast('Please select a platform.', 'error'); return; }
+    if (PENDING_PLATFORMS.includes(platform)) {
+        showToast('You already have a pending ticket for this platform.', 'error');
+        return;
+    }
     if (!message) { showToast('Please describe the issue.', 'error'); return; }
     if (message.length > 1000) { showToast('Message must be 1000 characters or less.', 'error'); return; }
 
@@ -1583,6 +1640,7 @@ async function submitReport() {
         if (data.success) {
             showToast(data.message, 'success');
             closeReportModal();
+            loadUserTickets();
         } else {
             showToast(data.message, 'error');
         }
@@ -1598,6 +1656,7 @@ fetch('api/check_session.php', { credentials: 'same-origin' }).then(res => {
     if (!res.ok) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
     loadDashboard();
     setTimeout(checkAnnouncement, 1500);
+    setTimeout(loadUserTickets, 1200);
 setTimeout(() => {
     loadNotifications();
     NOTIF_LAST_COUNT = -1;

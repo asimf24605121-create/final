@@ -268,8 +268,14 @@ function initSQLite(PDO $pdo): void {
         platform_name TEXT    NOT NULL,
         message       TEXT    NOT NULL,
         status        TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','resolved')),
-        created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+        created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+        resolved_at   TEXT    DEFAULT NULL
     )");
+
+    $stCols = $pdo->query("PRAGMA table_info(support_tickets)")->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('resolved_at', $stCols, true)) {
+        $pdo->exec("ALTER TABLE support_tickets ADD COLUMN resolved_at TEXT DEFAULT NULL");
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS announcements (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -355,13 +361,27 @@ function initSQLite(PDO $pdo): void {
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_as_user_status ON account_sessions(user_id, platform_id, status)");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS contact_messages (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        name       TEXT    NOT NULL,
-        email      TEXT    NOT NULL,
-        message    TEXT    NOT NULL,
-        is_read    INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        name            TEXT    NOT NULL,
+        email           TEXT    NOT NULL,
+        whatsapp_number TEXT    DEFAULT NULL,
+        message         TEXT    NOT NULL,
+        is_read         INTEGER NOT NULL DEFAULT 0,
+        status          TEXT    NOT NULL DEFAULT 'unread' CHECK(status IN ('unread','read','replied')),
+        admin_reply     TEXT    DEFAULT NULL,
+        created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
     )");
+
+    $cmCols = $pdo->query("PRAGMA table_info(contact_messages)")->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('whatsapp_number', $cmCols, true)) {
+        $pdo->exec("ALTER TABLE contact_messages ADD COLUMN whatsapp_number TEXT DEFAULT NULL");
+    }
+    if (!in_array('status', $cmCols, true)) {
+        $pdo->exec("ALTER TABLE contact_messages ADD COLUMN status TEXT NOT NULL DEFAULT 'unread'");
+    }
+    if (!in_array('admin_reply', $cmCols, true)) {
+        $pdo->exec("ALTER TABLE contact_messages ADD COLUMN admin_reply TEXT DEFAULT NULL");
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS password_reset_tokens (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,

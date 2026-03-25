@@ -55,6 +55,12 @@
                     <input id="contactEmail" type="email" placeholder="name@example.com" class="premium-input" />
                 </div>
 
+                <div class="mb-4">
+                    <label class="block text-gray-600 text-xs font-semibold mb-2 uppercase tracking-wider">WhatsApp Number *</label>
+                    <input id="contactWhatsApp" type="tel" placeholder="+923001234567" class="premium-input" />
+                    <p class="text-xs text-gray-400 mt-1">International format required (e.g. +923001234567)</p>
+                </div>
+
                 <div class="mb-5">
                     <label class="block text-gray-600 text-xs font-semibold mb-2 uppercase tracking-wider">Message *</label>
                     <textarea id="contactMessage" placeholder="How can we help you?" class="premium-input"></textarea>
@@ -99,6 +105,7 @@
         document.getElementById('successState').style.display = 'none';
         document.getElementById('contactName').value = '';
         document.getElementById('contactEmail').value = '';
+        document.getElementById('contactWhatsApp').value = '';
         document.getElementById('contactMessage').value = '';
         document.getElementById('alert').style.display = 'none';
     }
@@ -106,14 +113,19 @@
     async function submitContact() {
         const name = document.getElementById('contactName').value.trim();
         const email = document.getElementById('contactEmail').value.trim();
+        const whatsapp = document.getElementById('contactWhatsApp').value.trim();
         const message = document.getElementById('contactMessage').value.trim();
 
-        if (!name || !email || !message) {
-            showAlert('All fields are required.');
+        if (!name || !email || !whatsapp || !message) {
+            showAlert('All fields are required including WhatsApp number.');
             return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showAlert('Please enter a valid email address.');
+            return;
+        }
+        if (!/^\+[1-9]\d{6,14}$/.test(whatsapp)) {
+            showAlert('Please enter a valid WhatsApp number in international format (e.g. +923001234567).');
             return;
         }
 
@@ -126,7 +138,7 @@
             const res = await fetch('api/submit_contact.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, message }),
+                body: JSON.stringify({ name, email, whatsapp_number: whatsapp, message }),
             });
             const data = await res.json();
             if (data.success) {
