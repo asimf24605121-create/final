@@ -1,0 +1,118 @@
+You are a senior frontend/backend developer.
+
+I have a "User Selection Dropdown" in my Subscriptions page where admin selects a user to assign subscriptions.
+
+Currently, users are listed randomly. I want to upgrade this into a smart, searchable, and time-aware system.
+
+---
+
+1. SORTING (MOST IMPORTANT)
+
+* Users must be sorted by newest first
+* Recently added users should always appear at the TOP of the dropdown
+* Sorting should be based on:
+
+  * created_at (timestamp when user was added)
+
+Example:
+Newest user → top
+Oldest user → bottom
+
+---
+
+2. SEARCH FUNCTIONALITY
+
+* Add a real-time search inside dropdown
+
+* Admin should be able to search by:
+
+  * username
+  * email (optional but recommended)
+
+* Search should:
+
+  * filter instantly while typing
+  * be case-insensitive
+  * show "No users found" if empty
+
+---
+
+3. SHOW USER META (TIME INFO)
+
+Each user in dropdown should display:
+
+* Username
+* Small secondary text:
+
+  * "Added X minutes ago" OR
+  * "Added X hours ago" OR
+  * "Added X days ago"
+
+Example UI:
+Asim
+(added 5 minutes ago)
+
+---
+
+4. TIME FORMAT LOGIC
+
+* If < 60 minutes → show minutes
+* If < 24 hours → show hours
+* Else → show days
+
+Example:
+5 min ago
+2 hours ago
+3 days ago
+
+---
+
+5. UI IMPROVEMENTS
+
+* Highlight newest users (optional):
+
+  * badge like "New"
+  * or slight background highlight
+
+* Keep dropdown clean and fast
+
+* Do not overload UI
+
+---
+
+6. PERFORMANCE
+
+* Efficient rendering even with many users
+* Avoid full reloads
+* Use client-side filtering if possible
+
+---
+
+7. DATA REQUIREMENTS
+
+Each user must include:
+
+* id
+* username
+* email
+* created_at (REQUIRED for sorting + time display)
+
+---
+
+8. EDGE CASES
+
+* If created_at missing → show "Recently added"
+* Handle empty user list gracefully
+* Prevent duplicate users
+
+---
+
+GOAL:
+
+Make user selection faster, smarter, and admin-friendly by:
+
+* showing newest users first
+* enabling quick search
+* displaying when user was added
+
+Keep it clean, fast, and professional.

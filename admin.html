@@ -107,6 +107,32 @@
         .platform-checkbox-card .plat-logo{width:28px;height:28px;border-radius:6px;object-fit:cover;flex-shrink:0}
         .platform-checkbox-card .plat-initial{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;flex-shrink:0}
         .rbac-hidden{display:none!important}
+        .user-dropdown-wrap{position:relative;width:100%}
+        .user-dropdown-trigger{width:100%;padding:.5rem .75rem;border:1px solid #D1D5DB;border-radius:.5rem;font-size:.875rem;color:#111827;outline:none;transition:all .15s;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:42px}
+        .user-dropdown-trigger:hover{border-color:#A5B4FC}
+        .user-dropdown-trigger.open{border-color:#4F46E5;box-shadow:0 0 0 3px rgba(79,70,229,.1);border-bottom-left-radius:0;border-bottom-right-radius:0}
+        .user-dropdown-trigger .udd-placeholder{color:#9CA3AF}
+        .user-dropdown-trigger .udd-selected-name{font-weight:500;color:#111827}
+        .user-dropdown-trigger .udd-selected-time{font-size:.6875rem;color:#9CA3AF;margin-left:.375rem}
+        .user-dropdown-trigger .udd-chevron{width:16px;height:16px;color:#9CA3AF;transition:transform .2s;flex-shrink:0}
+        .user-dropdown-trigger.open .udd-chevron{transform:rotate(180deg)}
+        .user-dropdown-panel{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #4F46E5;border-top:none;border-radius:0 0 .5rem .5rem;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:50;display:none;max-height:320px;overflow:hidden;flex-direction:column}
+        .user-dropdown-panel.open{display:flex}
+        .user-dropdown-search{padding:.5rem .75rem;border-bottom:1px solid #F3F4F6;position:sticky;top:0;background:#fff;z-index:1}
+        .user-dropdown-search input{width:100%;padding:.375rem .625rem;border:1px solid #E5E7EB;border-radius:.375rem;font-size:.8125rem;outline:none;transition:border-color .15s}
+        .user-dropdown-search input:focus{border-color:#A5B4FC}
+        .user-dropdown-list{overflow-y:auto;max-height:260px;scrollbar-width:thin;scrollbar-color:#D1D5DB transparent}
+        .user-dropdown-list::-webkit-scrollbar{width:5px}
+        .user-dropdown-list::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px}
+        .udd-item{display:flex;align-items:center;gap:.625rem;padding:.5rem .75rem;cursor:pointer;transition:background .15s;border-bottom:1px solid #FAFAFA}
+        .udd-item:last-child{border-bottom:none}
+        .udd-item:hover{background:#F5F3FF}
+        .udd-item.selected{background:#EEF2FF}
+        .udd-item-info{display:flex;flex-direction:column;min-width:0;flex:1}
+        .udd-item-name{font-size:.8125rem;font-weight:500;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .udd-item-meta{font-size:.6875rem;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .udd-new-badge{display:inline-flex;align-items:center;padding:.0625rem .375rem;border-radius:9999px;font-size:.625rem;font-weight:600;background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;flex-shrink:0;letter-spacing:.02em;text-transform:uppercase}
+        .udd-empty{padding:1.5rem;text-align:center;font-size:.8125rem;color:#9CA3AF}
         .alert{padding:.75rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;margin-bottom:1rem;display:none}
         .toast-container{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
         .toast{pointer-events:auto;padding:.75rem 1rem;border-radius:.625rem;font-size:.875rem;font-weight:500;display:flex;align-items:center;gap:.5rem;animation:slideIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.1)}
@@ -536,7 +562,19 @@
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div>
                                 <label class="label">User</label>
-                                <select id="subUser" class="input"></select>
+                                <input type="hidden" id="subUser" value=""/>
+                                <div class="user-dropdown-wrap" id="userDropdownWrap">
+                                    <div class="user-dropdown-trigger" id="userDropdownTrigger" data-testid="dropdown-user-select">
+                                        <span class="udd-placeholder">Select user...</span>
+                                        <svg class="udd-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                    <div class="user-dropdown-panel" id="userDropdownPanel">
+                                        <div class="user-dropdown-search">
+                                            <input type="text" id="userDropdownSearch" placeholder="Search by username or email..." data-testid="input-user-search"/>
+                                        </div>
+                                        <div class="user-dropdown-list" id="userDropdownList"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label class="label mb-2">Duration</label>
@@ -2215,14 +2253,114 @@ async function cleanCookieVault() {
     } catch (e) { results.innerHTML = '<div class="text-sm text-red-600 py-2">Cleanup failed. Network error.</div>'; }
 }
 
+function timeAgo(dateStr) {
+    if (!dateStr) return 'Recently added';
+    const now = new Date();
+    const then = new Date(dateStr);
+    const diffMs = now - then;
+    if (diffMs < 0) return 'Just now';
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min${mins > 1 ? 's' : ''} ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+function isNewUser(dateStr) {
+    if (!dateStr) return false;
+    const diffMs = new Date() - new Date(dateStr);
+    return diffMs < 24 * 60 * 60 * 1000;
+}
+
+let _uddSelectedId = '';
+
 function populateDropdowns() {
-    const userSel = document.getElementById('subUser');
     const cookiePlatSel = document.getElementById('cookiePlatform');
-    userSel.innerHTML = '<option value="">Select user...</option>' + ALL_USERS.map(u => `<option value="${u.id}">${escHtml(u.username)}</option>`).join('');
     const platOpts = '<option value="">Select platform...</option>' + ALL_PLATFORMS.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
     cookiePlatSel.innerHTML = platOpts;
     renderPlatformCheckboxes();
+    renderUserDropdown(ALL_USERS);
+    initUserDropdown();
 }
+
+function renderUserDropdown(users) {
+    const list = document.getElementById('userDropdownList');
+    if (!users.length) {
+        list.innerHTML = '<div class="udd-empty">No users found</div>';
+        return;
+    }
+    list.innerHTML = users.map(u => {
+        const ta = timeAgo(u.created_at);
+        const isNew = isNewUser(u.created_at);
+        const emailStr = u.email ? ` · ${escHtml(u.email)}` : '';
+        const metaPrefix = u.created_at ? `Added ${ta}` : ta;
+        return `<div class="udd-item${_uddSelectedId == u.id ? ' selected' : ''}" data-uid="${u.id}" data-username="${escHtml(u.username)}" data-email="${escHtml(u.email || '')}" data-time="${escHtml(ta)}" data-testid="option-user-${u.id}">
+            <div class="udd-item-info">
+                <span class="udd-item-name">${escHtml(u.username)}</span>
+                <span class="udd-item-meta">${metaPrefix}${emailStr}</span>
+            </div>
+            ${isNew ? '<span class="udd-new-badge">New</span>' : ''}
+        </div>`;
+    }).join('');
+}
+
+function initUserDropdown() {
+    const trigger = document.getElementById('userDropdownTrigger');
+    const panel = document.getElementById('userDropdownPanel');
+    const searchInput = document.getElementById('userDropdownSearch');
+    const list = document.getElementById('userDropdownList');
+    const hiddenInput = document.getElementById('subUser');
+
+    trigger.onclick = function(e) {
+        e.stopPropagation();
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+            closeUserDropdown();
+        } else {
+            panel.classList.add('open');
+            trigger.classList.add('open');
+            searchInput.value = '';
+            renderUserDropdown(ALL_USERS);
+            searchInput.focus();
+        }
+    };
+
+    searchInput.onclick = function(e) { e.stopPropagation(); };
+    searchInput.oninput = function() {
+        const q = this.value.trim().toLowerCase();
+        if (!q) { renderUserDropdown(ALL_USERS); return; }
+        const filtered = ALL_USERS.filter(u =>
+            (u.username || '').toLowerCase().includes(q) ||
+            (u.email || '').toLowerCase().includes(q)
+        );
+        renderUserDropdown(filtered);
+    };
+
+    list.onclick = function(e) {
+        const item = e.target.closest('.udd-item');
+        if (!item) return;
+        const uid = item.dataset.uid;
+        const uname = item.dataset.username;
+        const utime = item.dataset.time;
+        _uddSelectedId = uid;
+        hiddenInput.value = uid;
+        trigger.innerHTML = `<span><span class="udd-selected-name">${escHtml(uname)}</span><span class="udd-selected-time">· ${escHtml(utime)}</span></span><svg class="udd-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+        closeUserDropdown();
+    };
+
+    panel.onclick = function(e) { e.stopPropagation(); };
+}
+
+function closeUserDropdown() {
+    const panel = document.getElementById('userDropdownPanel');
+    const trigger = document.getElementById('userDropdownTrigger');
+    panel.classList.remove('open');
+    trigger.classList.remove('open');
+}
+
+document.addEventListener('click', function() { closeUserDropdown(); });
 
 function renderPlatformCheckboxes() {
     const grid = document.getElementById('platformCheckboxGrid');
