@@ -133,6 +133,31 @@
         .udd-item-meta{font-size:.6875rem;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .udd-new-badge{display:inline-flex;align-items:center;padding:.0625rem .375rem;border-radius:9999px;font-size:.625rem;font-weight:600;background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;flex-shrink:0;letter-spacing:.02em;text-transform:uppercase}
         .udd-empty{padding:1.5rem;text-align:center;font-size:.8125rem;color:#9CA3AF}
+        .sub-status-active{background:#ECFDF5;color:#059669;border:1px solid #A7F3D0}
+        .sub-status-expiring{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A}
+        .sub-status-expired{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA}
+        .sub-plat-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);padding:1rem}
+        .sub-plat-modal-overlay.active{opacity:1;visibility:visible}
+        .sub-plat-modal{background:#fff;border-radius:1.125rem;box-shadow:0 25px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);width:100%;max-width:640px;max-height:85vh;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        .sub-plat-modal-overlay.active .sub-plat-modal{transform:translateY(0) scale(1)}
+        .sub-plat-header{padding:1.25rem 1.5rem;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
+        .sub-plat-header h3{font-size:1rem;font-weight:600;color:#111827}
+        .sub-plat-body{padding:1rem 1.5rem;overflow-y:auto;max-height:65vh}
+        .sub-plat-card{border:1px solid #E5E7EB;border-radius:.75rem;padding:.875rem 1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.875rem;transition:all .2s}
+        .sub-plat-card:last-child{margin-bottom:0}
+        .sub-plat-card:hover{border-color:#C7D2FE;box-shadow:0 2px 8px rgba(79,70,229,.06)}
+        .sub-plat-logo{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0}
+        .sub-plat-initial{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:700;flex-shrink:0}
+        .sub-plat-info{flex:1;min-width:0}
+        .sub-plat-name{font-size:.8125rem;font-weight:600;color:#111827}
+        .sub-plat-dates{font-size:.6875rem;color:#9CA3AF;margin-top:.125rem}
+        .sub-plat-actions{display:flex;gap:.375rem;flex-shrink:0}
+        .sub-summary-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #F3F4F6}
+        .sub-summary-item{display:flex;flex-direction:column;gap:.125rem}
+        .sub-summary-label{font-size:.625rem;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:.04em}
+        .sub-summary-value{font-size:.8125rem;font-weight:500;color:#374151}
+        .sub-user-row{cursor:pointer;transition:all .15s}
+        .sub-user-row:hover{background:linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%)}
         .alert{padding:.75rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;margin-bottom:1rem;display:none}
         .toast-container{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
         .toast{pointer-events:auto;padding:.75rem 1rem;border-radius:.625rem;font-size:.875rem;font-weight:500;display:flex;align-items:center;gap:.5rem;animation:slideIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.1)}
@@ -614,18 +639,33 @@
                 <div class="card">
                     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
                         <h3 class="font-semibold text-gray-900 text-sm">Active Subscriptions</h3>
-                        <button onclick="loadSubscriptions()" class="btn btn-secondary btn-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Refresh
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <span id="subsCount" class="text-xs text-gray-400"></span>
+                            <button onclick="loadSubscriptions()" class="btn btn-secondary btn-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Refresh
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="data-table">
-                            <thead><tr><th>User</th><th>Platform</th><th>Start</th><th>Expires</th><th>Remaining</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>User</th><th>Platforms</th><th>Earliest Start</th><th>Latest Expiry</th><th>Status</th><th>Actions</th></tr></thead>
                             <tbody id="subsBody"></tbody>
                         </table>
                     </div>
                     <div id="subsEmpty" class="hidden p-8 text-center text-gray-400 text-sm">No active subscriptions found.</div>
+                </div>
+
+                <div class="sub-plat-modal-overlay" id="subPlatModalOverlay" onclick="closeSubPlatModal()">
+                    <div class="sub-plat-modal" onclick="event.stopPropagation()">
+                        <div class="sub-plat-header">
+                            <h3 id="subPlatModalTitle">Platforms</h3>
+                            <button onclick="closeSubPlatModal()" class="text-gray-400 hover:text-gray-600 transition-colors" style="background:none;border:none;cursor:pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="sub-plat-body" id="subPlatModalBody"></div>
+                    </div>
                 </div>
             </div>
 
@@ -2509,6 +2549,8 @@ async function grantAccess() {
     } catch (e) { showAlert('Network error.', true); }
 }
 
+let _groupedSubs = {};
+
 async function loadSubscriptions() {
     try {
         const res = await fetch('api/get_subscriptions.php', { credentials: 'same-origin' });
@@ -2517,31 +2559,130 @@ async function loadSubscriptions() {
         const subs = data.subscriptions || [];
         const tbody = document.getElementById('subsBody');
         const empty = document.getElementById('subsEmpty');
-        if (!subs.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        const countEl = document.getElementById('subsCount');
+        if (!subs.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); if(countEl) countEl.textContent=''; _groupedSubs={}; return; }
         empty.classList.add('hidden');
         const now = new Date();
-        tbody.innerHTML = subs.map(s => {
-            const end = new Date(s.end_date);
-            const diffDays = Math.max(0, Math.ceil((end - now) / 86400000));
-            let remainBadge = `<span class="badge badge-green">${diffDays}d left</span>`;
-            if (diffDays <= 3) remainBadge = `<span class="badge badge-red">${diffDays}d left</span>`;
-            else if (diffDays <= 7) remainBadge = `<span class="badge badge-yellow">${diffDays}d left</span>`;
+        const grouped = {};
+        subs.forEach(s => {
+            if (!grouped[s.user_id]) grouped[s.user_id] = { user_id: s.user_id, username: s.username, platforms: [] };
+            grouped[s.user_id].platforms.push(s);
+        });
+        _groupedSubs = grouped;
+        const users = Object.values(grouped);
+        if(countEl) countEl.textContent = `${users.length} user${users.length>1?'s':''} · ${subs.length} subscription${subs.length>1?'s':''}`;
+        tbody.innerHTML = users.map(g => {
+            const starts = g.platforms.map(p => p.start_date).sort();
+            const ends = g.platforms.map(p => p.end_date).sort();
+            const earliest = starts[0];
+            const latest = ends[ends.length - 1];
+            const latestDate = new Date(latest);
+            const diffDays = Math.max(0, Math.ceil((latestDate - now) / 86400000));
+            let hasExpired = false, hasExpiring = false;
+            g.platforms.forEach(p => {
+                const d = Math.max(0, Math.ceil((new Date(p.end_date) - now) / 86400000));
+                if (d <= 0) hasExpired = true;
+                else if (d <= 3) hasExpiring = true;
+            });
+            let statusBadge, statusClass;
+            if (hasExpired) { statusBadge = 'Needs Attention'; statusClass = 'sub-status-expired'; }
+            else if (hasExpiring) { statusBadge = 'Expiring Soon'; statusClass = 'sub-status-expiring'; }
+            else { statusBadge = 'Active'; statusClass = 'sub-status-active'; }
+            const platCount = g.platforms.length;
             return `
-            <tr>
-                <td class="font-medium">${escHtml(s.username)}</td>
-                <td>${escHtml(s.platform_name)}</td>
-                <td class="text-xs text-gray-400">${escHtml(s.start_date)}</td>
-                <td class="text-xs text-gray-400">${escHtml(s.end_date)}</td>
-                <td>${remainBadge}</td>
-                <td>
-                    <div class="flex gap-1">
-                        <button onclick="extendSub(${s.id})" class="btn btn-success btn-sm">+7 Days</button>
-                        <button onclick="deleteSub(${s.id},'${escHtml(s.username)}','${escHtml(s.platform_name)}')" class="btn btn-danger btn-sm">Delete</button>
-                    </div>
+            <tr class="sub-user-row" onclick="openSubPlatModal(${g.user_id})" data-testid="sub-row-${g.user_id}">
+                <td class="font-medium" data-label="User">${escHtml(g.username)}</td>
+                <td data-label="Platforms">
+                    <span class="badge badge-blue">${platCount} platform${platCount>1?'s':''}</span>
+                </td>
+                <td class="text-xs text-gray-400" data-label="Earliest Start">${escHtml(earliest)}</td>
+                <td class="text-xs text-gray-400" data-label="Latest Expiry">${escHtml(latest)}</td>
+                <td data-label="Status"><span class="badge ${statusClass}" style="display:inline-flex;align-items:center;padding:.125rem .625rem;border-radius:9999px;font-size:.75rem;font-weight:500">${statusBadge}</span></td>
+                <td data-label="Actions">
+                    <button onclick="event.stopPropagation();openSubPlatModal(${g.user_id})" class="btn btn-primary btn-sm" data-testid="btn-view-platforms-${g.user_id}">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        View Platforms
+                    </button>
                 </td>
             </tr>`;
         }).join('');
     } catch (e) { console.error('loadSubscriptions error', e); }
+}
+
+function openSubPlatModal(userId) {
+    const g = _groupedSubs[userId];
+    if (!g) return;
+    const overlay = document.getElementById('subPlatModalOverlay');
+    document.getElementById('subPlatModalTitle').textContent = `${g.username} — ${g.platforms.length} Platform${g.platforms.length>1?'s':''}`;
+    const now = new Date();
+    const body = document.getElementById('subPlatModalBody');
+    const totalDays = g.platforms.reduce((sum, p) => sum + Math.max(0, Math.ceil((new Date(p.end_date) - now) / 86400000)), 0);
+    const avgDays = g.platforms.length ? Math.round(totalDays / g.platforms.length) : 0;
+    const starts = g.platforms.map(p => p.start_date).sort();
+    const ends = g.platforms.map(p => p.end_date).sort();
+    body.innerHTML = `
+        <div class="sub-summary-row">
+            <div class="sub-summary-item"><span class="sub-summary-label">Total Platforms</span><span class="sub-summary-value">${g.platforms.length}</span></div>
+            <div class="sub-summary-item"><span class="sub-summary-label">Earliest Start</span><span class="sub-summary-value">${escHtml(starts[0])}</span></div>
+            <div class="sub-summary-item"><span class="sub-summary-label">Latest Expiry</span><span class="sub-summary-value">${escHtml(ends[ends.length-1])}</span></div>
+            <div class="sub-summary-item"><span class="sub-summary-label">Avg. Remaining</span><span class="sub-summary-value">${avgDays} day${avgDays!==1?'s':''}</span></div>
+        </div>
+        ${g.platforms.map(p => {
+            const end = new Date(p.end_date);
+            const diffDays = Math.max(0, Math.ceil((end - now) / 86400000));
+            let badgeClass, badgeText;
+            if (diffDays <= 0) { badgeClass = 'badge-red'; badgeText = 'Expired'; }
+            else if (diffDays <= 3) { badgeClass = 'badge-red'; badgeText = `${diffDays}d left`; }
+            else if (diffDays <= 7) { badgeClass = 'badge-yellow'; badgeText = `${diffDays}d left`; }
+            else { badgeClass = 'badge-green'; badgeText = `${diffDays}d left`; }
+            const logo = p.logo_url
+                ? `<img src="${escHtml(p.logo_url)}" alt="${escHtml(p.platform_name)}" class="sub-plat-logo"/>`
+                : `<div class="sub-plat-initial" style="background:${escHtml(p.bg_color_hex || '#4F46E5')}">${escHtml((p.platform_name||'?')[0].toUpperCase())}</div>`;
+            return `<div class="sub-plat-card" data-testid="sub-plat-card-${p.id}">
+                ${logo}
+                <div class="sub-plat-info">
+                    <div class="sub-plat-name">${escHtml(p.platform_name)}</div>
+                    <div class="sub-plat-dates">${escHtml(p.start_date)} → ${escHtml(p.end_date)}</div>
+                </div>
+                <span class="badge ${badgeClass}">${badgeText}</span>
+                <div class="sub-plat-actions">
+                    <button onclick="extendSubAndRefreshModal(${p.id},${userId})" class="btn btn-success btn-sm" data-testid="btn-extend-${p.id}">+7 Days</button>
+                    <button onclick="deleteSubAndRefreshModal(${p.id},'${escHtml(g.username)}','${escHtml(p.platform_name)}',${userId})" class="btn btn-danger btn-sm" data-testid="btn-delete-${p.id}">Delete</button>
+                </div>
+            </div>`;
+        }).join('')}`;
+    overlay.classList.add('active');
+}
+
+function closeSubPlatModal() {
+    document.getElementById('subPlatModalOverlay').classList.remove('active');
+}
+
+async function extendSubAndRefreshModal(subId, userId) {
+    try {
+        const res = await fetch('api/extend_subscription.php', { method: 'POST', headers: csrfHeaders(), credentials: 'same-origin', body: JSON.stringify({ subscription_id: subId, days: 7 }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) {
+            await loadSubscriptions();
+            if (_groupedSubs[userId]) openSubPlatModal(userId);
+            else closeSubPlatModal();
+        }
+    } catch (e) { showAlert('Network error.', true); }
+}
+
+async function deleteSubAndRefreshModal(subId, username, platformName, userId) {
+    if (!confirm(`Delete subscription for "${username}" on "${platformName}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch('api/delete_subscription.php', { method: 'POST', headers: csrfHeaders(), credentials: 'same-origin', body: JSON.stringify({ subscription_id: subId }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) {
+            await loadSubscriptions();
+            if (_groupedSubs[userId]) openSubPlatModal(userId);
+            else closeSubPlatModal();
+        }
+    } catch (e) { showAlert('Network error.', true); }
 }
 
 async function extendSub(subId) {

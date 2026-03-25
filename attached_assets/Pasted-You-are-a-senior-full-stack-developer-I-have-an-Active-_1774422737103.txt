@@ -1,0 +1,161 @@
+You are a senior full-stack developer.
+
+I have an "Active Subscriptions" table where each row currently represents a single platform subscription per user. This causes duplicate rows for the same user.
+
+I want to redesign this into a grouped, professional SaaS-style system.
+
+---
+
+1. GROUP BY USER (CORE CHANGE)
+
+* Each user should appear ONLY ONCE in the table
+* Do NOT show multiple rows for the same user
+
+Instead:
+
+Each row = 1 user
+Inside that row → all platforms grouped
+
+---
+
+2. TABLE STRUCTURE (NEW)
+
+Columns:
+
+* User
+* Total Platforms (count)
+* Earliest Start Date
+* Latest Expiry Date
+* Overall Status (Active / Expiring Soon / Expired)
+* Actions
+
+---
+
+3. VIEW PLATFORMS BUTTON (MAIN FEATURE)
+
+* Add a button: "View Platforms"
+
+When clicked:
+
+* Open a modal / dropdown / expandable row
+* Show ALL platforms of that specific user
+
+Inside view:
+
+For each platform show:
+
+* Platform name
+* Start date
+* Expiry date
+* Remaining days
+* Status badge
+
+---
+
+4. PLATFORM DISPLAY (INSIDE MODAL)
+
+Example:
+
+User: albertinsan
+
+Platforms:
+
+* ChatGPT → 6 days left
+* Netflix → 6 days left
+* Spotify → 6 days left
+* Udemy → 6 days left
+
+Each should have:
+
+* color badge:
+
+  * Red → expired
+  * Orange → <3 days
+  * Green → active
+
+---
+
+5. ACTIONS (INSIDE PLATFORM VIEW)
+
+Each platform should have:
+
+* +7 Days button
+* Delete button
+
+These actions must only affect THAT specific platform
+
+---
+
+6. CALCULATIONS
+
+* Total Platforms = count of user subscriptions
+
+* Earliest Start = min(start_date)
+
+* Latest Expiry = max(expiry_date)
+
+* Overall Status:
+
+  * If any expired → show warning
+  * If many near expiry → show "Expiring Soon"
+  * Else → Active
+
+---
+
+7. UI / UX (PRO LEVEL)
+
+* Clean SaaS dashboard look
+
+* Smooth expand/collapse animation
+
+* Modal should feel modern (glass / card UI)
+
+* Optional:
+
+  * Show platform icons
+  * Show total days remaining average
+
+---
+
+8. PERFORMANCE
+
+* Must not reload full page
+* Use efficient grouping (backend or JS)
+
+---
+
+9. DATA STRUCTURE
+
+Instead of flat:
+
+[ {user, platform, start, expiry} ]
+
+Use grouped:
+
+{
+user_id,
+username,
+subscriptions: [
+{ platform, start_date, expiry_date }
+]
+}
+
+---
+
+10. EDGE CASES
+
+* User with 0 platforms → hide or show empty state
+* Duplicate entries → prevent
+* Expired subscriptions → clearly visible
+
+---
+
+GOAL:
+
+Transform the subscription table into a clean, scalable, and professional admin system where:
+
+* 1 user = 1 row
+* All platforms accessible via "View Platforms"
+* Admin can manage everything efficiently without clutter
+
+Make it visually premium and highly usable.

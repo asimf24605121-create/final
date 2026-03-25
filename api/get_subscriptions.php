@@ -18,7 +18,9 @@ $subs = $pdo->query("
         us.end_date,
         us.is_active,
         u.username,
-        p.name AS platform_name
+        p.name AS platform_name,
+        p.logo_url,
+        p.bg_color_hex
     FROM user_subscriptions us
     INNER JOIN users u ON u.id = us.user_id
     INNER JOIN platforms p ON p.id = us.platform_id
